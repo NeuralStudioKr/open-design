@@ -73,6 +73,7 @@ import type { PluginLoopSubmit } from './PluginLoopHome';
 import type { FacetSelection } from './plugins-home/facets';
 import type { PluginUseAction } from './plugins-home/useActions';
 import { RecentProjectsStrip } from './RecentProjectsStrip';
+import { AnimatePresence } from 'motion/react';
 
 interface ActivePlugin {
   record: InstalledPluginRecord;
@@ -1385,14 +1386,16 @@ export function HomeView({
         presetSelection={presetStartersSelection}
       />
 
-      {detailsRecord ? (
-        <PluginDetailsModal
-          record={detailsRecord}
-          onClose={() => setDetailsRecord(null)}
-          onUse={(record) => requestPluginContextUse(record, 'use')}
-          isApplying={pendingApplyId === detailsRecord.id}
-        />
-      ) : null}
+      <AnimatePresence>
+        {detailsRecord ? (
+          <PluginDetailsModal
+            record={detailsRecord}
+            onClose={() => setDetailsRecord(null)}
+            onUse={(record) => requestPluginContextUse(record, 'use')}
+            isApplying={pendingApplyId === detailsRecord.id}
+          />
+        ) : null}
+      </AnimatePresence>
       {pendingReplacement ? (
         <div className="home-hero-confirm__backdrop" role="presentation">
           <div

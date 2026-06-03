@@ -135,10 +135,14 @@ test('[P1] home view exposes the redesigned hero, recent projects, and starters'
   await createProject(page, 'Home structure recent project');
   await gotoEntryHome(page);
 
+  // The redesigned entry shell keeps every view mounted (only the active one
+  // is visible), so `plugins-home-section` exists in both the home and plugins
+  // views; scope the lookup to the home view to keep the locator unambiguous.
+  const home = page.getByTestId('entry-view-home');
   await expect(page.getByTestId('recent-projects-strip')).toBeVisible();
   await expect(page.getByTestId('recent-projects-view-all')).toBeVisible();
-  await expect(page.getByTestId('plugins-home-section')).toBeVisible();
-  await expect(page.getByTestId('plugins-home-browse-registry')).toBeVisible();
+  await expect(home.getByTestId('plugins-home-section')).toBeVisible();
+  await expect(home.getByTestId('plugins-home-browse-registry')).toBeVisible();
   await expect(page.getByTestId('home-hero')).toBeVisible();
   await expect(page.getByTestId('entry-nav-home')).toHaveAttribute('aria-current', 'page');
 
@@ -493,7 +497,11 @@ test('[P2] home starters shows the empty catalog state when no plugins are avail
   });
 
   await gotoEntryHome(page);
-  await expect(page.getByTestId('plugins-home-section')).toContainText('Catalog is empty.');
+  // `plugins-home-section` is rendered in both the home and plugins views (both
+  // stay mounted), so scope to the home view to keep the locator unambiguous.
+  await expect(page.getByTestId('entry-view-home').getByTestId('plugins-home-section')).toContainText(
+    'Catalog is empty.',
+  );
 });
 
 test('[P2] home starters search and facet filters narrow the visible gallery', async ({ page }) => {
@@ -569,12 +577,16 @@ test('[P2] home starters search can enter a no-results state and recover with cl
 
   await gotoEntryHome(page);
 
-  await page.getByTestId('plugins-home-pill-category-all').click();
-  await page.getByTestId('plugins-home-search').fill('no-such-starter');
-  await expect(page.getByTestId('plugins-home-section')).toContainText(
+  // `plugins-home-section` and its children are rendered in both the home and
+  // plugins views (both stay mounted), so scope to the home view to keep these
+  // strict-mode locators unambiguous.
+  const home = page.getByTestId('entry-view-home');
+  await home.getByTestId('plugins-home-pill-category-all').click();
+  await home.getByTestId('plugins-home-search').fill('no-such-starter');
+  await expect(home.getByTestId('plugins-home-section')).toContainText(
     'No plugins match the current filters.',
   );
-  await page.getByRole('button', { name: /Clear filters/i }).click();
+  await home.getByRole('button', { name: /Clear filters/i }).click();
   await expect(page.locator('[data-plugin-id="localized-plugin"]')).toBeVisible();
   await expect(page.locator('[data-plugin-id="deck-writer"]')).toBeVisible();
 });
